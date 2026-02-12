@@ -1,0 +1,23 @@
+#the mod name as displayed in-game
+displayName: "cwalr"
+
+#the internal name of your mod
+name: "wabbit-egg"
+
+#your name
+author: "wabbitking1234"
+
+#the fully qualified main class of the mod
+main: "wabbit.Egg"
+
+#the mod description as seen in the mod dialog
+description: "This mod is fully compatible with 147 and up, just change the minGameVersion and you're good to go."
+
+#the mod version
+version: 1.0
+
+#the minimum game build required to run this mod
+minGameVersion: 154
+
+#this is a java mod
+java: true
