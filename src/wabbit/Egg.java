@@ -1,6 +1,9 @@
 package wabbit;
 
+import wabbit.DrawFlyersAdvice;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.Instant;
 import arc.*;
 import arc.math.Mathf;
@@ -19,10 +22,11 @@ import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.ui.dialogs.*;
 import mindustry.graphics.*;
-/*
+
 
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.Origin;
@@ -33,7 +37,7 @@ import net.bytebuddy.implementation.bind.annotation.FieldValue;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
- */
+
 
 public class Egg extends Mod {
 
@@ -67,19 +71,29 @@ public class Egg extends Mod {
                 flyerTypeField.setAccessible(false);
                 Log.info("cwalr");
 
-                /* Tried to make them spin, failed miserably.
+                //Tried to make them spin, failed miserably.
 
                 ByteBuddyAgent.install();
                 new ByteBuddy()
                         .redefine(MenuRenderer.class)
-                        .method(named("flyers").and(takesArguments(Floatc2.class)))
-                        .intercept(MethodDelegation.to(FlyersInterceptor.class))
+                        .visit(Advice.to(FlyersAdvice.class)
+                                .on(named("flyers").and(takesArguments(Floatc2.class))))
                         .make()
-                        .load(MenuRenderer.class.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
-                Log.info("AHHHHHHH");
-                Log.info("MenuRenderer modified successfully!");
+                        .load(MenuRenderer.class.getClassLoader(),
+                                ClassReloadingStrategy.fromInstalledAgent());
 
-                 */
+                Log.info("AHHHHHHH");
+
+                //new ByteBuddy()
+                //        .redefine(MenuRenderer.class)
+                //        .visit(Advice.to(DrawFlyersAdvice.class)
+                //                .on(named("drawFlyers")))
+                //        .make()
+                //        .load(MenuRenderer.class.getClassLoader(),
+                //                ClassReloadingStrategy.fromInstalledAgent());
+                //Log.info("MenuRenderer modified successfully!");
+
+
 
             } catch(Exception ex){
                 ex.printStackTrace();
@@ -99,31 +113,36 @@ public class Egg extends Mod {
     }
 }
 
-/*class FlyersInterceptor {
+class FlyersAdvice {
+    @Advice.OnMethodEnter(skipOn = Advice.OnNonDefaultValue.class)
+    static boolean enter(@Advice.Argument(0) Floatc2 cons) {
 
-    @RuntimeType
-    public void flyers(@Argument(0) Floatc2 cons) {
         try {
             MenuFragment menuFragment = Vars.ui.menufrag;
             Field rendererField = MenuFragment.class.getDeclaredField("renderer");
             rendererField.setAccessible(true);
             MenuRenderer renderer = (MenuRenderer) rendererField.get(menuFragment);
             rendererField.setAccessible(false);
+
             Field timeField = renderer.getClass().getDeclaredField("time");
             timeField.setAccessible(true);
             float time = timeField.getFloat(renderer);
+            rendererField.setAccessible(false);
 
             Field flyerRotField = renderer.getClass().getDeclaredField("flyerRot");
             flyerRotField.setAccessible(true);
             float flyerRot = flyerRotField.getFloat(renderer);
+            rendererField.setAccessible(false);
 
             Field flyersField = renderer.getClass().getDeclaredField("flyers");
             flyersField.setAccessible(true);
             int flyers = flyersField.getInt(renderer);
+            rendererField.setAccessible(false);
 
             Field flyerTypeField = renderer.getClass().getDeclaredField("flyerType");
             flyerTypeField.setAccessible(true);
             UnitType flyerType = (UnitType) flyerTypeField.get(renderer);
+            rendererField.setAccessible(false);
 
             //(I'll figure out how to reflect these later. ByteBuddy is for desktop only, so these should be fine for now.)
             int width = 100;
@@ -137,7 +156,8 @@ public class Egg extends Mod {
             float roteee = (float)((Instant.now().getNano() * 0.00000036) % 360);
 
             for (int i = 0; i < flyers; i++) {
-                Tmp.v1.trns(roteee, time * flyerType.speed);
+                Tmp.v1.trns(flyerRot, time * flyerType.speed);
+                flyerType.sample.rotation = roteee;
                 cons.get(
                         (Mathf.randomSeedRange(i, range) + Tmp.v1.x + Mathf.absin(time + Mathf.randomSeedRange(i + 2, 500), 10f, 3.4f) + offset) % (tw + Mathf.randomSeed(i + 5, 0, 500)),
                         (Mathf.randomSeedRange(i + 1, range) + Tmp.v1.y + Mathf.absin(time + Mathf.randomSeedRange(i + 3, 500), 10f, 3.4f) + offset) % th
@@ -147,11 +167,12 @@ public class Egg extends Mod {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return true;
     }
 }
 
 
- */
+
 
 
 
